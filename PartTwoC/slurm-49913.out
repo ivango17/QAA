@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/gpfs/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoC/./read_length_dis.py", line 18, in <module>
+    R1 = args.filefw
+         ^^^^
+NameError: name 'args' is not defined
+Command exited with non-zero status 1
+0.39user 0.35system 0:00.41elapsed 180%CPU (0avgtext+0avgdata 56108maxresident)k
+0inputs+0outputs (0major+13226minor)pagefaults 0swaps
+Traceback (most recent call last):
+  File "/gpfs/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoC/./read_length_dis.py", line 18, in <module>
+    R1 = args.filefw
+         ^^^^
+NameError: name 'args' is not defined
+Command exited with non-zero status 1
+0.39user 0.39system 0:00.46elapsed 170%CPU (0avgtext+0avgdata 54204maxresident)k
+0inputs+0outputs (0major+13300minor)pagefaults 0swaps

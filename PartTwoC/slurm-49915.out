@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/gpfs/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoC/./read_length_dis.py", line 61, in <module>
+    plt.histogram(R1Lengths)
+    ^^^^^^^^^^^^^
+AttributeError: module 'matplotlib.pyplot' has no attribute 'histogram'
+Command exited with non-zero status 1
+29.16user 0.76system 0:29.69elapsed 100%CPU (0avgtext+0avgdata 176952maxresident)k
+0inputs+0outputs (0major+68300minor)pagefaults 0swaps
+Traceback (most recent call last):
+  File "/gpfs/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoC/./read_length_dis.py", line 61, in <module>
+    plt.histogram(R1Lengths)
+    ^^^^^^^^^^^^^
+AttributeError: module 'matplotlib.pyplot' has no attribute 'histogram'
+Command exited with non-zero status 1
+43.99user 1.02system 0:44.69elapsed 100%CPU (0avgtext+0avgdata 234980maxresident)k
+0inputs+0outputs (0major+78807minor)pagefaults 0swaps

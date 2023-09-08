@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/gpfs/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoC/./read_length_dis.py", line 50, in <module>
+    R2lineCounter += 1
+    ^^^^^^^^^^^^^
+NameError: name 'R2lineCounter' is not defined. Did you mean: 'R2LineCounter'?
+Command exited with non-zero status 1
+15.01user 0.59system 0:15.34elapsed 101%CPU (0avgtext+0avgdata 119128maxresident)k
+0inputs+0outputs (0major+48432minor)pagefaults 0swaps
+Traceback (most recent call last):
+  File "/gpfs/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoC/./read_length_dis.py", line 50, in <module>
+    R2lineCounter += 1
+    ^^^^^^^^^^^^^
+NameError: name 'R2lineCounter' is not defined. Did you mean: 'R2LineCounter'?
+Command exited with non-zero status 1
+22.40user 0.71system 0:23.02elapsed 100%CPU (0avgtext+0avgdata 148300maxresident)k
+0inputs+0outputs (0major+53539minor)pagefaults 0swaps
