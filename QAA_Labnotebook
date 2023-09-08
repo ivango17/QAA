@@ -103,5 +103,6 @@ Part 2:
 
             51.55user 2.03system 0:53.33elapsed 100%CPU (0avgtext+0avgdata 2261848maxresident)k
             0inputs+0outputs (0major+1101933minor)pagefaults 0swaps
+            
             79.05user 2.77system 1:21.45elapsed 100%CPU (0avgtext+0avgdata 3405320maxresident)k
             0inputs+0outputs (0major+1635985minor)pagefaults 0swaps
