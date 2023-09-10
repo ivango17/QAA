@@ -1,0 +1,381 @@
+Ian VanGordon
+9/6/2023
+QAA
+
+
+Objectives:
+
+    The objectives of this assignment are to use existing tools for quality assessment and adaptor trimming, compare the quality assessments to those from your own software, and to demonstrate your ability to summarize other important information about this RNA-Seq data set in a high-level report. That is, you should create a cohesive, well written report for your "PI" about what you've learned about/from your data.
+
+This project will be broken into 3 main parts:
+
+    1) Run fastqc on the R1 and R2 to understand the quality of the data
+
+    2) Trim adapters that made it into the sequencing data
+
+    3) Align sequences to genome and determine whether or not data was stranded
+
+
+Part 1:
+
+    I was assigned: 17_3E_fox_S13_L008 15_3C_mbnl_S11_L008 to analyze.
+    The files are here on talapas: /projects/bgmp/shared/2017_sequencing/demultiplexed/ 
+    They are compressed.
+
+    Using my fastq_qscore_distribution.py script, running the first R1(17) file I got this output using /usr/bin/time:
+
+        275.19user 0.34system 4:36.42elapsed 99%CPU (0avgtext+0avgdata 60584maxresident)k
+        0inputs+0outputs (0major+14403minor)pagefaults 0swaps
+
+        My python script worked on all of the files that I was assigned.
+
+
+    Using fastqc:
+
+        To load the module: module load fastqc/0.11.5
+
+        Running 17_3E_fox_S13_L008_R1 I got the output :
+
+            59.34user 2.59system 1:01.67elapsed 100%CPU (0avgtext+0avgdata 247956maxresident)k
+            156712inputs+1784outputs (14major+53513minor)pagefaults 0swaps
+
+    I separated the two sets of data by placing the fastqc files in a folder labeled PartOneA and my phred script outputs in PartOneB in the QAA directory.
+
+    After reviewing the data for both sets of files, I do believe that the quality is up to par to be used in downstream analysis. The distributions from both methods were consistant and there was nothing that stood out as bad.
+    Additionally, the duplication levels from the fastqc output all seemed to be very consistant with a peak at the >10 duplication level. Despite this, it is not enough to dismiss the data. 
+    Some of the summary information does indicate that there are adapter sequences in the reads. These will have to be removed for further analysis. 
+
+
+
+Part 2:
+
+    Conda Environment:
+
+        conda create -n QAA
+
+        I created a conda env called QAA with the following packages installed:
+
+            cutadapt version: 4.4
+            trimmomatic version: 0.39
+            star version: 2.7.10b
+            matplotlib.py version: 3.7.2
+            htseq version: 2.0.3
+            numpy version: 1.25.2
+
+
+    cutadapt:
+
+        usage:  cutadapt -a ADAPT1 -A ADAPT2 [options] -o out1.fastq -p out2.fastq in1.fastq in2.fastq
+
+        command for first library: cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT -o "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/15R1.fastq" -p "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/15R2.fastq" "/projects/bgmp/shared/2017_sequencing/demultiplexed/15_3C_mbnl_S11_L008_R1_001.fastq.gz" "/projects/bgmp/shared/2017_sequencing/demultiplexed/15_3C_mbnl_S11_L008_R2_001.fastq.gz"
+
+        command for second library: cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT -o "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/17R1.fastq" -p "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/17R2.fastq" "/projects/bgmp/shared/2017_sequencing/demultiplexed/17_3E_fox_S13_L008_R1_001.fastq.gz" "/projects/bgmp/shared/2017_sequencing/demultiplexed/17_3E_fox_S13_L008_R2_001.fastq.gz"
+
+        All of the trimmed fastq files were trimmed and put into QAA/PartTwoA
+
+        To ensure that the reads were trimmed, I used a bash command while sumultaniously getting the proportion of trimmed reads:
+
+            command: wc -l <filename>
+            command: grep "^+" -B1 --no-group-separator <filename> | grep -v "^+" | awk '{if (length($0)<101){sum+=1}}END{print(sum)}'
+
+            results:
+
+                15R1: 417810/7806403 = 5.0535214% of reads trimmed
+                15R2: 477359/7806403 = 6.1149674% of reads trimmed
+                17R1: 1024588/11784410 = 8.69444% of reads trimmed
+                17R2: 1104503/11784410 = 9.37258% of reads trimmed
+
+            To search for the adapter seqeunces specifically, the followning bash commands were used"
+
+                command: grep "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA" <R1files>
+                command: grep "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" <R2files>
+
+                There were no matches to the adapter sequences in forward or reverse reads.
+    
+    trimmomatic:
+
+        usage: PE [-version] [-threads <threads>] [-phred33|-phred64] [-trimlog <trimLogFile>] [-summary <statsSummaryFile>] [-quiet] [-validatePairs] [-basein <inputBase> | <inputFile1> <inputFile2>] [-baseout <outputBase> | <outputFile1P> <outputFile1U> <outputFile2P> <outputFile2U>] <trimmer1>...
+
+        command for first library: trimmomatic PE -phred33 "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/15R1.fastq" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/15R2.fastq" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/15R1.P.fq.gz" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/15R1.U.fq.gz" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/15R2.P.fq.gz" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/15R2.U.fq.gz" LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:35
+
+            output:
+
+                Input Read Pairs: 7806403 Both Surviving: 7168671 (91.83%) Forward Only Surviving: 594705 (7.62%) Reverse Only Surviving: 23842 (0.31%) Dropped: 19185 (0.25%)
+                TrimmomaticPE: Completed successfully
+
+
+        command for second library: trimmomatic PE -phred33 "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/17R1.fastq" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoA/17R2.fastq" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/17R1.P.fq.gz" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/17R1.U.fq.gz" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/17R2.P.fq.gz" "/projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/17R2.U.fq.gz" LEADING:3 TRAILING:3 SLIDINGWINDOW:3:15 MINLEN:35
+
+            output:
+
+                The output was lost due to losing connection to the VPN after the program ran. To remedy this, part of my python script will output summary stats for the surviving reads (count of surviving reads).
+
+
+    read_length_dis.py:
+
+        I wrote a python script that works in my base environment and uses packages argparse, matplotlib, numpy, and gzip to generate plots that show the post-processesing read length distributions.
+        This script can be found in PartTwoC.
+        To run this script I used an sbatch script (PartTwoC/dist.sh) with the following parameters:
+
+            #SBATCH --account=bgmp                    
+            #SBATCH --partition=compute               
+            #SBATCH --cpus-per-task=8                 
+            #SBATCH --mem=32GB 
+
+        Edit:
+
+            I miss understood the directions and each distribution should be on one plot. Rewriting...
+
+        slurm.out:
+
+            51.55user 2.03system 0:53.33elapsed 100%CPU (0avgtext+0avgdata 2261848maxresident)k
+            0inputs+0outputs (0major+1101933minor)pagefaults 0swaps
+            
+            79.05user 2.77system 1:21.45elapsed 100%CPU (0avgtext+0avgdata 3405320maxresident)k
+            0inputs+0outputs (0major+1635985minor)pagefaults 0swaps
+
+
+Part 3:
+
+    Star:
+
+        To align the reads to my reference mouse genome, I am using star. Info about the version can be found in the environment information above. The shell script is called GenomeGeneration.sh in PartThree directory.
+
+        Here are the options that I used to run it:
+
+            #SBATCH --account=bgmp                    #REQUIRED: which account to use
+            #SBATCH --partition=compute               #REQUIRED: which partition to use
+            #SBATCH --cpus-per-task=8                 #optional: number of cpus, default is 1
+            #SBATCH --mem=32GB                        #optional: amount of memory, default is 4GB
+
+            conda activate QAA
+
+            /usr/bin/time -v STAR \
+            --runThreadN 8 \
+            --readFilesCommand zcat \
+            --runMode genomeGenerate \
+            --genomeDir /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/MouseGenome \
+            --genomeFastaFiles /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/EnsemblFiles/Mus_musculus.GRCm39.dna.primary_assembly.fa \
+            --sjdbGTFfile /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/EnsemblFiles/Mus_musculus.GRCm39.110.gtf
+
+        Slurm.out:
+
+            User time (seconds): 5328.41
+            System time (seconds): 62.70
+            Percent of CPU this job got: 460%
+            Elapsed (wall clock) time (h:mm:ss or m:ss): 19:30.63
+            Average shared text size (kbytes): 0
+            Average unshared data size (kbytes): 0
+            Average stack size (kbytes): 0
+            Average total size (kbytes): 0
+            Maximum resident set size (kbytes): 32382980
+            Average resident set size (kbytes): 0
+            Major (requiring I/O) page faults: 0
+            Minor (reclaiming a frame) page faults: 24541298
+            Voluntary context switches: 21461
+            Involuntary context switches: 15479
+            Swaps: 0
+            File system inputs: 0
+            File system outputs: 0
+            Socket messages sent: 0
+            Socket messages received: 0
+            Signals delivered: 0
+            Page size (bytes): 4096
+            Exit status: 0
+
+
+        To actually align the sequences, I used start again with the following options, PartThree/Alignment.sh:
+
+            #SBATCH --account=bgmp                    #REQUIRED: which account to use
+            #SBATCH --partition=compute               #REQUIRED: which partition to use
+            #SBATCH --cpus-per-task=8                 #optional: number of cpus, default is 1
+            #SBATCH --mem=32GB                        #optional: amount of memory, default is 4GB
+
+            conda activate QAA
+
+            /usr/bin/time -v STAR \
+            --runThreadN 8 --runMode alignReads \
+            --outFilterMultimapNmax 3 \
+            --outSAMunmapped Within KeepPairs \
+            --alignIntronMax 1000000 --alignMatesGapMax 1000000 \
+            --readFilesCommand zcat \
+            --readFilesIn /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/15R1.P.fq.gz /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/15R2.P.fq.gz \
+            --genomeDir /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/MouseGenome \
+            --outFileNamePrefix /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/15mouse.sam
+
+            /usr/bin/time -v STAR \
+            --runThreadN 8 --runMode alignReads \
+            --outFilterMultimapNmax 3 \
+            --outSAMunmapped Within KeepPairs \
+            --alignIntronMax 1000000 --alignMatesGapMax 1000000 \
+            --readFilesCommand zcat \
+            --readFilesIn /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/17R1.P.fq.gz /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartTwoB/17R2.P.fq.gz \
+            --genomeDir /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/MouseGenome \
+            --outFileNamePrefix /projects/bgmp/ianvango/bioinfo/Bi623/QAA/PartThree/17mouse.sam
+
+        Slurm.out:
+
+            User time (seconds): 596.63
+            System time (seconds): 10.80
+            Percent of CPU this job got: 627%
+            Elapsed (wall clock) time (h:mm:ss or m:ss): 1:36.75
+            Average shared text size (kbytes): 0
+            Average unshared data size (kbytes): 0
+            Average stack size (kbytes): 0
+            Average total size (kbytes): 0
+            Maximum resident set size (kbytes): 27403816
+            Average resident set size (kbytes): 0
+            Major (requiring I/O) page faults: 0
+            Minor (reclaiming a frame) page faults: 175399
+            Voluntary context switches: 79065
+            Involuntary context switches: 3272
+            Swaps: 0
+            File system inputs: 0
+            File system outputs: 0
+            Socket messages sent: 0
+            Socket messages received: 0
+            Signals delivered: 0
+            Page size (bytes): 4096
+            Exit status: 0
+
+
+    htseq-count:
+
+        bash command: htseq-count --stranded=yes 15mouse.samAligned.out.sam ./EnsemblFiles/Mus_musculus.GRCm39.110.gtf
+
+        "stranded=yes and single-end reads, the read has to be mapped to the same strand as the feature. 
+        For paired-end reads, the first read has to be on the same strand and the second read on the opposite strand. For stranded=reverse, these rules are reversed."
+
+        I ended up writing a batch script for this (htseq.sh).
+
+        Slurm.out:
+
+            15 with stranded=yes:
+
+                __no_feature    6398001
+                __ambiguous     5954
+                __too_low_aQual 8130
+                __not_aligned   178265
+                __alignment_not_unique  315365
+                        Command being timed: "htseq-count --stranded=yes 15mouse.samAligned.out.sam ./EnsemblFiles/Mus_musculus.GRCm39.110.gtf"
+                        User time (seconds): 564.36
+                        System time (seconds): 4.31
+                        Percent of CPU this job got: 99%
+                        Elapsed (wall clock) time (h:mm:ss or m:ss): 9:31.59
+                        Average shared text size (kbytes): 0
+                        Average unshared data size (kbytes): 0
+                        Average stack size (kbytes): 0
+                        Average total size (kbytes): 0
+                        Maximum resident set size (kbytes): 177572
+                        Average resident set size (kbytes): 0
+                        Major (requiring I/O) page faults: 0
+                        Minor (reclaiming a frame) page faults: 148368
+                        Voluntary context switches: 343
+                        Involuntary context switches: 247
+                        Swaps: 0
+                        File system inputs: 0
+                        File system outputs: 0
+                        Socket messages sent: 0
+                        Socket messages received: 0
+                        Signals delivered: 0
+                        Page size (bytes): 4096
+                        Exit status: 0
+
+
+                    17 with stranded = yes:
+
+                        __no_feature    9508691
+                        __ambiguous     9349
+                        __too_low_aQual 10645
+                        __not_aligned   442341
+                        __alignment_not_unique  526873
+                                Command being timed: "htseq-count --stranded=yes 17mouse.samAligned.out.sam ./EnsemblFiles/Mus_musculus.GRCm39.110.gtf"
+                                User time (seconds): 826.55
+                                System time (seconds): 5.71
+                                Percent of CPU this job got: 99%
+                                Elapsed (wall clock) time (h:mm:ss or m:ss): 13:56.07
+                                Average shared text size (kbytes): 0
+                                Average unshared data size (kbytes): 0
+                                Average stack size (kbytes): 0
+                                Average total size (kbytes): 0
+                                Maximum resident set size (kbytes): 170416
+                                Average resident set size (kbytes): 0
+                                Major (requiring I/O) page faults: 0
+                                Minor (reclaiming a frame) page faults: 382368
+                                Voluntary context switches: 296
+                                Involuntary context switches: 332024
+                                Swaps: 0
+                                File system inputs: 0
+                                File system outputs: 0
+                                Socket messages sent: 0
+                                Socket messages received: 0
+                                Signals delivered: 0
+                                Page size (bytes): 4096
+                                Exit status: 0
+
+
+                    15 with stranded = reverse:
+
+                        Command being timed: "htseq-count --stranded=reverse 15mouse.samAligned.out.sam ./EnsemblFiles/Mus_musculus.GRCm39.110.gtf"
+                        User time (seconds): 583.02
+                        System time (seconds): 4.37
+                        Percent of CPU this job got: 99%
+                        Elapsed (wall clock) time (h:mm:ss or m:ss): 9:50.18
+                        Average shared text size (kbytes): 0
+                        Average unshared data size (kbytes): 0
+                        Average stack size (kbytes): 0
+                        Average total size (kbytes): 0
+                        Maximum resident set size (kbytes): 170536
+                        Average resident set size (kbytes): 0
+                        Major (requiring I/O) page faults: 0
+                        Minor (reclaiming a frame) page faults: 341356
+                        Voluntary context switches: 292
+                        Involuntary context switches: 385165
+                        Swaps: 0
+                        File system inputs: 0
+                        File system outputs: 0
+                        Socket messages sent: 0
+                        Socket messages received: 0
+                        Signals delivered: 0
+                        Page size (bytes): 4096
+                        Exit status: 0
+
+                    17 with stranded = reverse:
+
+                        Command being timed: "htseq-count --stranded=reverse 17mouse.samAligned.out.sam ./EnsemblFiles/Mus_musculus.GRCm39.110.gtf"
+                        User time (seconds): 856.23
+                        System time (seconds): 5.70
+                        Percent of CPU this job got: 99%
+                        Elapsed (wall clock) time (h:mm:ss or m:ss): 14:25.31
+                        Average shared text size (kbytes): 0
+                        Average unshared data size (kbytes): 0
+                        Average stack size (kbytes): 0
+                        Average total size (kbytes): 0
+                        Maximum resident set size (kbytes): 174432
+                        Average resident set size (kbytes): 0
+                        Major (requiring I/O) page faults: 0
+                        Minor (reclaiming a frame) page faults: 369610
+                        Voluntary context switches: 286
+                        Involuntary context switches: 383359
+                        Swaps: 0
+                        File system inputs: 0
+                        File system outputs: 0
+                        Socket messages sent: 0
+                        Socket messages received: 0
+                        Signals delivered: 0
+                        Page size (bytes): 4096
+                        Exit status: 0
+
+
+
+
+            Genes mapped from htseq:
+
+            command: grep "^ENSMUSG" <file> | awk '{sum+=$2}END{print sum}'
+
+            15, stranded = yes: 262956
+            15, stranded = reverse: 5969733
+            17, stranded = yes: 425542
+            17, stranded = reverse: 8711216
+
+            These are strand specific.

@@ -11,6 +11,8 @@
 *.bam
 *.gtf
 *.gff
+*zip
+*.out
 
 # STAR files
 *.out.tab
